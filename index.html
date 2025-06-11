@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHD Family Planner - Organizza la tua famiglia con serenità</title>
+    <meta name="description" content="App gratuita per organizzare famiglie con bambini ADHD. Calendar visivi, promemoria intelligenti, template specializzati.">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6B73FF">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <p>Caricamento ADHD Planner...</p>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeAuthModal()">&times;</span>
+            
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form">
+                <h2>🏠 Benvenuto nella tua famiglia organizzata</h2>
+                <p>Accedi per continuare a gestire la tua famiglia ADHD</p>
+                
+                <form onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <label for="login-email">📧 Email</label>
+                        <input type="email" id="login-email" required placeholder="la-tua-email@esempio.com">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="login-password">🔐 Password</label>
+                        <input type="password" id="login-password" required placeholder="La tua password">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Accedi</button>
+                </form>
+                
+                <p class="auth-switch">
+                    Non hai un account? 
+                    <a href="#" onclick="showRegisterForm()">Registrati gratis</a>
+                </p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form hidden">
+                <h2>🎉 Crea il tuo account famiglia</h2>
+                <p>Inizia gratis - nessuna carta di credito richiesta</p>
+                
+                <form onsubmit="handleRegister(event)">
+                    <div class="input-group">
+                        <label for="reg-name">👤 Nome famiglia</label>
+                        <input type="text" id="reg-name" required placeholder="Famiglia Rossi">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="reg-email">📧 Email</label>
+                        <input type="email" id="reg-email" required placeholder="famiglia@esempio.com">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="reg-password">🔐 Password</label>
+                        <input type="password" id="reg-password" required placeholder="Almeno 6 caratteri">
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="reg-terms" required>
+                        <label for="reg-terms">
+                            Accetto i <a href="#terms" target="_blank">Termini di Servizio</a> 
+                            e la <a href="#privacy" target="_blank">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Crea Account Gratis</button>
+                </form>
+                
+                <p class="auth-switch">
+                    Hai già un account? 
+                    <a href="#" onclick="showLoginForm()">Accedi</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="app hidden">
+        <!-- Top Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <span class="logo">🧠</span>
+                <span class="brand-text">ADHD Planner</span>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="btn btn-outline" onclick="showUpgradeModal()">
+                    ⭐ Upgrade
+                </button>
+                <div class="user-menu" onclick="toggleUserMenu()">
+                    <span id="user-name">Famiglia</span>
+                    <span class="dropdown-arrow">▼</span>
+                    
+                    <div id="user-dropdown" class="dropdown-menu hidden">
+                        <a href="#" onclick="showSettings()">⚙️ Impostazioni</a>
+                        <a href="#" onclick="showHelp()">❓ Aiuto</a>
+                        <a href="#" onclick="logout()">🚪 Esci</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Bottom Navigation (Mobile) -->
+        <nav class="bottom-nav">
+            <a href="#dashboard" class="nav-tab active" onclick="showPage('dashboard')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="#calendar" class="nav-tab" onclick="showPage('calendar')">
+                <span class="nav-icon">📅</span>
+                <span class="nav-label">Calendario</span>
+            </a>
+            <a href="#tasks" class="nav-tab" onclick="showPage('tasks')">
+                <span class="nav-icon">✅</span>
+                <span class="nav-label">Attività</span>
+            </a>
+            <a href="#family" class="nav-tab" onclick="showPage('family')">
+                <span class="nav-icon">👨‍👩‍👧‍👦</span>
+                <span class="nav-label">Famiglia</span>
+            </a>
+            <a href="#templates" class="nav-tab" onclick="showPage('templates')">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Template</span>
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <div class="page-header">
+                    <h1>🌅 Buongiorno, <span id="family-name">Famiglia</span>!</h1>
+                    <p class="subtitle">Ecco cosa vi aspetta oggi</p>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="completed-today">0</div>
+                            <div class="stat-label">Completate oggi</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">⏰</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="pending-today">0</div>
+                            <div class="stat-label">In programma</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="streak-days">0</div>
+                            <div class="stat-label">Giorni di fila</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Schedule -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>📋 Programma di oggi</h2>
+                        <button class="btn btn-small" onclick="addQuickTask()">+ Aggiungi</button>
+                    </div>
+                    
+                    <div id="today-schedule" class="schedule-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Family Overview -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>👨‍👩‍👧‍👦 Panoramica famiglia</h2>
+                        <button class="btn btn-small" onclick="showPage('family')">Gestisci</button>
+                    </div>
+                    
+                    <div id="family-overview" class="family-grid">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section">
+                    <h2>⚡ Azioni rapide</h2>
+                    <div class="quick-actions">
+                        <button class="action-btn" onclick="useTemplate('morning')">
+                            <span class="action-icon">🌅</span>
+                            <span class="action-text">Routine Mattina</span>
+                        </button>
+                        
+                        <button class="action-btn" onclick="useTemplate('homework')">
+                            <span class="action-icon">📚</span>
+                            <span class="action-text">Tempo Compiti</span>
+                        </button>
+                        
+                        <button class="action-btn" onclick="useTemplate('evening')">
+                            <span class="action-icon">🌙</span>
+                            <span class="action-text">Routine Sera</span>
+                        </button>
+                        
+                        <button class="action-btn" onclick="createCustomTask()">
+                            <span class="action-icon">✨</span>
+                            <span class="action-text">Attività Custom</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Page -->
+            <div id="calendar-page" class="page">
+                <div class="page-header">
+                    <h1>📅 Calendario Famiglia</h1>
+                    <div class="calendar-controls">
+                        <button class="btn btn-small" onclick="previousMonth()">&lt;</button>
+                        <span id="current-month">Mese Anno</span>
+                        <button class="btn btn-small" onclick="nextMonth()">&gt;</button>
+                        <button class="btn btn-primary" onclick="addCalendarEvent()">+ Evento</button>
+                    </div>
+                </div>
+
+                <div class="calendar-view">
+                    <div id="calendar-grid" class="calendar-grid">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📋 Eventi oggi</h2>
+                    <div id="today-events" class="events-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Page -->
+            <div id="tasks-page" class="page">
+                <div class="page-header">
+                    <h1>✅ Gestione Attività</h1>
+                    <button class="btn btn-primary" onclick="createNewTask()">+ Nuova Attività</button>
+                </div>
+
+                <!-- Task Filters -->
+                <div class="task-filters">
+                    <button class="filter-btn active" onclick="filterTasks('all')">Tutte</button>
+                    <button class="filter-btn" onclick="filterTasks('today')">Oggi</button>
+                    <button class="filter-btn" onclick="filterTasks('pending')">Da fare</button>
+                    <button class="filter-btn" onclick="filterTasks('completed')">Completate</button>
+                </div>
+
+                <!-- Tasks List -->
+                <div id="tasks-container" class="tasks-container">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Family Page -->
+            <div id="family-page" class="page">
+                <div class="page-header">
+                    <h1>👨‍👩‍👧‍👦 Gestione Famiglia</h1>
+                    <button class="btn btn-primary" onclick="addFamilyMember()">+ Aggiungi Membro</button>
+                </div>
+
+                <div id="family-members" class="family-members">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <div class="section">
+                    <h2>📊 Statistiche Famiglia</h2>
+                    <div class="stats-container">
+                        <canvas id="family-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Templates Page -->
+            <div id="templates-page" class="page">
+                <div class="page-header">
+                    <h1>📋 Template ADHD</h1>
+                    <p class="subtitle">Routine pre-costruite per semplificare la giornata</p>
+                </div>
+
+                <div class="templates-grid" id="templates-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="task-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeTaskModal()">&times;</span>
+            
+            <h2 id="task-modal-title">✨ Nuova Attività</h2>
+            
+            <form id="task-form" onsubmit="saveTask(event)">
+                <div class="input-group">
+                    <label for="task-title">📝 Titolo attività</label>
+                    <input type="text" id="task-title" required placeholder="Cosa devi fare?">
+                </div>
+                
+                <div class="input-group">
+                    <label for="task-description">📄 Descrizione (opzionale)</label>
+                    <textarea id="task-description" placeholder="Dettagli aggiuntivi..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="task-date">📅 Data</label>
+                        <input type="date" id="task-date" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="task-time">⏰ Orario</label>
+                        <input type="time" id="task-time">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="task-duration">⏱️ Durata (minuti)</label>
+                        <input type="number" id="task-duration" min="5" max="300" value="30">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="task-assignee">👤 Assegnata a</label>
+                        <select id="task-assignee">
+                            <option value="">Seleziona membro famiglia</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="task-priority">🎯 Priorità</label>
+                    <select id="task-priority">
+                        <option value="low">🟢 Bassa</option>
+                        <option value="medium" selected>🟡 Media</option>
+                        <option value="high">🔴 Alta</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="task-category">🏷️ Categoria</label>
+                    <select id="task-category">
+                        <option value="routine">📋 Routine</option>
+                        <option value="school">🏫 Scuola</option>
+                        <option value="chores">🏠 Casa</option>
+                        <option value="fun">🎉 Divertimento</option>
+                        <option value="health">🏥 Salute</option>
+                        <option value="other">📦 Altro</option>
+                    </select>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="task-reminder">
+                    <label for="task-reminder">🔔 Ricordami 15 minuti prima</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="task-recurring">
+                    <label for="task-recurring">🔄 Ripeti ogni giorno</label>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeTaskModal()">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Salva Attività</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upgrade Modal -->
+    <div id="upgrade-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeUpgradeModal()">&times;</span>
+            
+            <h2>⭐ Passa a ADHD Planner Premium</h2>
+            <p>Sblocca tutte le funzionalità per organizzare meglio la tua famiglia</p>
+            
+            <div class="pricing-plans">
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3>Family Plan</h3>
+                        <div class="plan-price">€6.99<span>/mese</span></div>
+                    </div>
+                    
+                    <ul class="plan-features">
+                        <li>✅ Famiglia illimitata</li>
+                        <li>✅ Tutti i template ADHD</li>
+                        <li>✅ Calendario sincronizzazione</li>
+                        <li>✅ Statistiche avanzate</li>
+                        <li>✅ Supporto prioritario</li>
+                    </ul>
+                    
+                    <button class="btn btn-primary" onclick="upgradeToFamily()">
+                        Scegli Family
+                    </button>
+                </div>
+                
+                <div class="plan-card featured">
+                    <div class="plan-badge">Più Popolare</div>
+                    <div class="plan-header">
+                        <h3>Premium Plan</h3>
+                        <div class="plan-price">€9.99<span>/mese</span></div>
+                    </div>
+                    
+                    <ul class="plan-features">
+                        <li>✅ Tutto di Family Plan</li>
+                        <li>✅ Consulenza mensile specialista</li>
+                        <li>✅ Analisi comportamentali AI</li>
+                        <li>✅ Piani personalizzati</li>
+                        <li>✅ Accesso beta nuove funzioni</li>
+                    </ul>
+                    
+                    <button class="btn btn-primary" onclick="upgradeToPremium()">
+                        Scegli Premium
+                    </button>
+                </div>
+            </div>
+            
+            <p class="upgrade-note">
+                💳 Pagamento sicuro • 🔄 Annulla quando vuoi • 📞 Supporto 7/7
+            </p>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script src="calendar.js"></script>
+    <script src="tasks.js"></script>
+    <script src="templates.js"></script>
+    <script src="notifications.js"></script>
+    <script src="payments.js"></script>
+    <script src="app.js"></script>
+
+    <!-- Service Worker for PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
