@@ -1,0 +1,53 @@
+{
+  "name": "ADHD Family Planner",
+  "short_name": "ADHD Planner",
+  "description": "App per organizzare famiglie con bambini ADHD",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#6B73FF",
+  "theme_color": "#6B73FF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "productivity", "family"],
+  "lang": "it",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Nuova Attività",
+      "short_name": "Nuova",
+      "description": "Crea una nuova attività",
+      "url": "/?action=new-task",
+      "icons": [
+        {
+          "src": "/icons/add-task.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Calendario",
+      "short_name": "Calendario",
+      "description": "Visualizza il calendario",
+      "url": "/#calendar",
+      "icons": [
+        {
+          "src": "/icons/calendar.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
